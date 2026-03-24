@@ -360,7 +360,26 @@ function showToast(msg, type) {
   t.textContent = msg; t.className = type; t.style.display = 'block';
   setTimeout(()=>{ t.style.display='none'; }, 3500);
 }
+// ฟังก์ชันดึง Master Data จาก Google Sheets
+async function loadMasterData() {
+  try {
+    const response = await fetch(API + "?action=getItemMaster");
+    const data = await response.json();
+    
+    const dataList = document.getElementById('item-list');
+    dataList.innerHTML = ''; // ล้างข้อมูลเก่า
+    
+    data.forEach(item => {
+      let option = document.createElement('option');
+      option.value = item;
+      dataList.appendChild(option);
+    });
+  } catch (error) {
+    console.error('ไม่สามารถดึงข้อมูล Master Data ได้:', error);
+  }
+}
 
+initDate(); renderCats(); updateSummary(); loadMasterData();
 initDate(); renderCats(); updateSummary();
 </script>
 </body>
