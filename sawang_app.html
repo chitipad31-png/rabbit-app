@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="สว่างโภชนา">
+<title>สว่างโภชนา — รายรับ-รายจ่าย</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;background:#f5f5f0;color:#1a1a1a}
+  :root{--green:#1D9E75;--green-dark:#0F6E56;--green-light:#E1F5EE;--red:#E24B4A;--red-light:#FCEBEB;--border:#e0e0d8;--surface:#f5f5f0;--text:#1a1a1a;--muted:#888}
+  #app{max-width:480px;margin:0 auto;min-height:100vh;background:#fff;display:flex;flex-direction:column}
+  #topbar{background:var(--green);padding:14px 16px 12px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+  .top-title{color:#fff;font-size:17px;font-weight:600}
+  .top-sub{color:rgba(255,255,255,0.8);font-size:12px;margin-top:2px}
+  .top-icon{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:18px}
+  #summary-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 14px;background:var(--surface);border-bottom:1px solid var(--border)}
+  .sum-card{background:#fff;border-radius:10px;padding:9px 8px;text-align:center;border:1px solid var(--border)}
+  .sum-label{font-size:10px;color:var(--muted);margin-bottom:3px}
+  .sum-val{font-size:15px;font-weight:600}
+  .sum-val.inc{color:var(--green)}
+  .sum-val.exp{color:var(--red)}
+  #tabs{display:grid;grid-template-columns:1fr 1fr;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:56px;z-index:9}
+  .tab{padding:12px;text-align:center;font-size:14px;cursor:pointer;color:var(--muted);border-bottom:2.5px solid transparent;font-weight:500}
+  .tab.active{color:var(--green);border-bottom-color:var(--green)}
+  #page-form{padding:16px;flex:1}
+  #page-history{padding:0 16px;flex:1}
+  .type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+  .type-btn{padding:11px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;cursor:pointer;text-align:center;background:#fff;color:var(--muted);font-weight:500}
+  .type-btn.income.active{background:var(--green-light);border-color:var(--green);color:#085041}
+  .type-btn.expense.active{background:var(--red-light);border-color:var(--red);color:#791F1F}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:7px;font-weight:500}
+  .field input{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:10px;font-size:16px;background:#fff;color:var(--text);font-family:inherit;-webkit-appearance:none;appearance:none}
+  .field input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,0.1)}
+  .date-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+  .today-btn{padding:11px 14px;background:var(--green-light);color:#085041;border:1px solid var(--green);border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+  .today-btn:active{background:var(--green);color:#fff}
+  .date-badge{display:inline-block;margin-top:7px;padding:5px 11px;border-radius:20px;font-size:12px;font-weight:500}
+  .date-badge.today{background:var(--green-light);color:#085041}
+  .date-badge.past{background:#fff8e6;color:#633806;border:1px solid #fac775}
+  .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .cat-chip{padding:9px 4px;border:1px solid var(--border);border-radius:10px;font-size:12px;text-align:center;cursor:pointer;color:var(--muted);background:#fff;line-height:1.3;user-select:none}
+  .cat-chip.sel-income{border-color:var(--green);background:var(--green-light);color:#085041;font-weight:600}
+  .cat-chip.sel-expense{border-color:var(--red);background:var(--red-light);color:#791F1F;font-weight:600}
+  #submit-btn{width:100%;padding:14px;background:var(--green);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:6px}
+  #submit-btn:active{background:var(--green-dark)}
+  #submit-btn:disabled{opacity:0.55;cursor:not-allowed}
+  #toast{display:none;padding:11px 14px;border-radius:10px;font-size:14px;margin-top:12px;text-align:center;font-weight:500}
+  #toast.ok{background:var(--green-light);color:#085041}
+  #toast.err{background:var(--red-light);color:#791F1F}
+  .hist-item{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--border)}
+  .hist-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  .hist-dot.income{background:var(--green)}
+  .hist-dot.expense{background:var(--red)}
+  .hist-info{flex:1;min-width:0}
+  .hist-cat{font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hist-sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .hist-amount{font-size:15px;font-weight:600;flex-shrink:0}
+  .hist-amount.income{color:var(--green)}
+  .hist-amount.expense{color:var(--red)}
+  .empty{text-align:center;padding:48px 16px;color:var(--muted);font-size:14px}
+  .hist-header{font-size:12px;color:var(--muted);font-weight:600;padding:12px 0 4px;display:flex;justify-content:space-between;align-items:center}
+  .hist-tip{background:#fff8e6;border:1px solid #fac775;border-radius:10px;padding:10px 13px;font-size:12px;color:#633806;margin-bottom:16px;line-height:1.6}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <div>
+      <div class="top-title">สว่างโภชนา</div>
+      <div class="top-sub" id="today-label"></div>
+    </div>
+    <div class="top-icon">🍽</div>
+  </div>
+
+  <div id="summary-bar">
+    <div class="sum-card"><div class="sum-label">รายรับวันนี้</div><div class="sum-val inc" id="s-income">฿0</div></div>
+    <div class="sum-card"><div class="sum-label">รายจ่ายวันนี้</div><div class="sum-val exp" id="s-expense">฿0</div></div>
+    <div class="sum-card"><div class="sum-label">คงเหลือ</div><div class="sum-val" id="s-balance">฿0</div></div>
+  </div>
+
+  <div id="tabs">
+    <div class="tab active" id="tab-form" onclick="switchTab('form')">+ บันทึกรายการ</div>
+    <div class="tab" id="tab-hist" onclick="switchTab('history')">ประวัติ</div>
+  </div>
+
+  <div id="page-form">
+    <div class="hist-tip">💡 กด Share (iOS) หรือ ⋮ (Android) → "Add to Home Screen" เพื่อใช้แบบแอป</div>
+
+    <div class="type-toggle">
+      <button class="type-btn income active" id="btn-income" onclick="setType('income')">+ รายรับ</button>
+      <button class="type-btn expense" id="btn-expense" onclick="setType('expense')">− รายจ่าย</button>
+    </div>
+
+    <div class="field">
+      <label>วันที่บันทึก</label>
+      <div class="date-row">
+        <input type="date" id="entry-date" onchange="updateDateBadge()" />
+        <button class="today-btn" onclick="setToday()">วันนี้</button>
+      </div>
+      <div id="date-badge"></div>
+    </div>
+
+    <div class="field">
+      <label>หมวดหมู่</label>
+      <div class="cat-grid" id="cat-grid"></div>
+    </div>
+
+    <div class="field">
+      <label>ยอดเงิน (บาท)</label>
+      <input type="number" id="amount" placeholder="0" inputmode="numeric" />
+    </div>
+
+    <div class="field">
+      <label>ชื่อรายการ (ถ้ามี)</label>
+      <input type="text" id="name" placeholder="เช่น หมู, ผักกาด..." />
+    </div>
+
+    <div class="field">
+      <label>หมายเหตุ (ถ้ามี)</label>
+      <input type="text" id="note" placeholder="..." />
+    </div>
+
+    <button id="submit-btn" onclick="submitEntry()">บันทึก</button>
+    <div id="toast"></div>
+  </div>
+
+  <div id="page-history" style="display:none">
+    <div id="hist-list"></div>
+  </div>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbx6tCPLDtn7qELE7otenzAz59EOaAzAOhbnnClfWUD_gYMULQ9Bynf08CB3K7cvsU8_pA/exec';
+const CATS = {
+  income: ['ยอดขายสด','ยอดโอน','ยอดขายอาหาร','ยอดขายเครื่องดื่ม','ยอดขายของเก่า','LINE MAN'],
+  expense: ['ของสด','ผัก/ผลไม้','ของแห้ง','เครื่องปรุง','ของแช่แข็ง','เครื่องดื่ม','เหล้า/เบียร์','ของใช้','เบ็ดเตล็ด','ค่าใช้จ่าย','เชื้อเพลิง','ค่าแรง']
+};
+let currentType = 'income', selectedCat = '';
+let history = JSON.parse(localStorage.getItem('sawang_v2') || '[]');
+
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function fmtDate(s) { return new Date(s+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}); }
+function fmtDateLong(s) { return new Date(s ? s+'T00:00:00' : new Date()).toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); }
+
+document.getElementById('today-label').textContent = fmtDateLong();
+
+function initDate() {
+  const inp = document.getElementById('entry-date');
+  inp.value = todayStr();
+  inp.max = todayStr();
+  updateDateBadge();
+}
+
+function setToday() {
+  document.getElementById('entry-date').value = todayStr();
+  updateDateBadge();
+}
+
+function updateDateBadge() {
+  const val = document.getElementById('entry-date').value;
+  const el = document.getElementById('date-badge');
+  if (!val) { el.innerHTML = ''; return; }
+  const isToday = val === todayStr();
+  el.innerHTML = `<span class="date-badge ${isToday?'today':'past'}">${isToday ? 'วันนี้ — ' : 'ย้อนหลัง — '}${fmtDateLong(val)}</span>`;
+}
+
+function setType(t) {
+  currentType = t; selectedCat = '';
+  document.getElementById('btn-income').classList.toggle('active', t==='income');
+  document.getElementById('btn-expense').classList.toggle('active', t==='expense');
+  renderCats();
+}
+
+function renderCats() {
+  const g = document.getElementById('cat-grid');
+  g.innerHTML = '';
+  CATS[currentType].forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'cat-chip' + (c===selectedCat ? (currentType==='income'?' sel-income':' sel-expense') : '');
+    d.textContent = c;
+    d.onclick = () => { selectedCat = c; renderCats(); };
+    g.appendChild(d);
+  });
+}
+
+function switchTab(t) {
+  document.getElementById('tab-form').classList.toggle('active', t==='form');
+  document.getElementById('tab-hist').classList.toggle('active', t==='history');
+  document.getElementById('page-form').style.display = t==='form'?'block':'none';
+  document.getElementById('page-history').style.display = t==='history'?'block':'none';
+  if (t==='history') renderHistory();
+}
+
+function renderHistory() {
+  const el = document.getElementById('hist-list');
+  if (!history.length) { el.innerHTML = '<div class="empty">ยังไม่มีรายการที่บันทึก</div>'; return; }
+  const groups = {};
+  [...history].sort((a,b)=>b.date.localeCompare(a.date)).forEach(r => {
+    if (!groups[r.date]) groups[r.date] = [];
+    groups[r.date].push(r);
+  });
+  let html = '';
+  for (const date in groups) {
+    const items = groups[date];
+    const inc = items.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount),0);
+    const exp = items.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount),0);
+    const net = inc - exp;
+    html += `<div class="hist-header">
+      <span>${fmtDate(date)}</span>
+      <span style="color:${net>=0?'var(--green)':'var(--red)'};font-size:12px">${net>=0?'+':'−'}฿${Math.abs(net).toLocaleString()}</span>
+    </div>`;
+    items.forEach(r => {
+      const sub = [r.name, r.note].filter(Boolean).join(' · ');
+      html += `<div class="hist-item">
+        <div class="hist-dot ${r.type}"></div>
+        <div class="hist-info">
+          <div class="hist-cat">${r.category}</div>
+          ${sub?`<div class="hist-sub">${sub}</div>`:''}
+        </div>
+        <div class="hist-amount ${r.type}">${r.type==='expense'?'−':'+'} ฿${Number(r.amount).toLocaleString()}</div>
+      </div>`;
+    });
+  }
+  el.innerHTML = html;
+}
+
+function updateSummary() {
+  const today = todayStr();
+  const items = history.filter(r=>r.date===today);
+  const inc = items.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount),0);
+  const exp = items.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount),0);
+  document.getElementById('s-income').textContent = '฿'+inc.toLocaleString();
+  document.getElementById('s-expense').textContent = '฿'+exp.toLocaleString();
+  const bal = inc - exp;
+  const el = document.getElementById('s-balance');
+  el.textContent = (bal<0?'−':'')+'฿'+Math.abs(bal).toLocaleString();
+  el.style.color = bal<0?'var(--red)':bal>0?'var(--green)':'#1a1a1a';
+}
+
+async function submitEntry() {
+  const dateVal = document.getElementById('entry-date').value;
+  const amount = document.getElementById('amount').value.trim();
+  if (!dateVal) { showToast('กรุณาเลือกวันที่','err'); return; }
+  if (!selectedCat) { showToast('กรุณาเลือกหมวดหมู่ก่อน','err'); return; }
+  if (!amount || isNaN(amount) || Number(amount)<=0) { showToast('กรุณากรอกยอดเงิน','err'); return; }
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+  const entry = {
+    date: dateVal,
+    category: selectedCat,
+    name: document.getElementById('name').value.trim(),
+    amount: Number(amount),
+    note: document.getElementById('note').value.trim(),
+    type: currentType
+  };
+  try {
+    const r = await fetch(API, {method:'POST', body: JSON.stringify(entry)});
+    const d = await r.json();
+    if (d.status==='ok') {
+      saveLocal(entry);
+      const isToday = dateVal === todayStr();
+      showToast(isToday ? '✓ บันทึกลง Google Sheet แล้ว' : `✓ บันทึกย้อนหลัง ${fmtDate(dateVal)} แล้ว`, 'ok');
+    } else showToast('เกิดข้อผิดพลาด ลองใหม่','err');
+  } catch(e) {
+    saveLocal(entry);
+    showToast('บันทึกในเครื่องแล้ว (ไม่มี internet)','ok');
+  }
+  btn.disabled = false; btn.textContent = 'บันทึก';
+}
+
+function saveLocal(entry) {
+  history.push(entry);
+  localStorage.setItem('sawang_v2', JSON.stringify(history));
+  updateSummary();
+  document.getElementById('amount').value = '';
+  document.getElementById('name').value = '';
+  document.getElementById('note').value = '';
+  selectedCat = ''; renderCats();
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = type; t.style.display = 'block';
+  setTimeout(()=>{ t.style.display='none'; }, 3500);
+}
+
+initDate(); renderCats(); updateSummary();
+</script>
+</body>
+</html>
