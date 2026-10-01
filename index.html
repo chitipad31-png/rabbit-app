@@ -2,107 +2,137 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#168464">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Rabbit">
 <title>Rabbit — รายรับ-รายจ่าย</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;background:#f5f5f0;color:#1a1a1a}
-  :root{--green:#1D9E75;--green-dark:#0F6E56;--green-light:#E1F5EE;--red:#E24B4A;--red-light:#FCEBEB;--border:#e0e0d8;--surface:#f5f5f0;--text:#1a1a1a;--muted:#888}
-  #app{max-width:480px;margin:0 auto;min-height:100vh;background:#fff;display:flex;flex-direction:column}
-  #topbar{background:var(--green);padding:14px 16px 12px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
-  .top-title{color:#fff;font-size:17px;font-weight:600}
-  .top-sub{color:rgba(255,255,255,0.8);font-size:12px;margin-top:2px}
-  .top-icon{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:18px}
-  #summary-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 14px;background:var(--surface);border-bottom:1px solid var(--border)}
-  .sum-card{background:#fff;border-radius:10px;padding:9px 8px;text-align:center;border:1px solid var(--border)}
-  .sum-label{font-size:10px;color:var(--muted);margin-bottom:3px}
-  .sum-val{font-size:15px;font-weight:600}
+  :root{--green:#168464;--green-dark:#0d654d;--green-light:#e7f6f0;--red:#d84d4d;--red-light:#fff0ef;--border:#e7e5df;--surface:#f6f5f1;--text:#18201d;--muted:#737a76;--shadow:0 8px 28px rgba(31,49,42,.08)}
+  html,body{min-height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;background:#eeede8;color:var(--text)}
+  button,input{font:inherit}
+  button{touch-action:manipulation}
+  #app{max-width:520px;margin:0 auto;min-height:100vh;background:var(--surface);display:flex;flex-direction:column}
+  #topbar{background:var(--green);padding:calc(14px + env(safe-area-inset-top)) 18px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+  .top-title{color:#fff;font-size:19px;font-weight:750;letter-spacing:-.2px}
+  .top-sub{color:rgba(255,255,255,.82);font-size:12px;margin-top:2px}
+  .top-icon{width:42px;height:42px;border:0;border-radius:14px;background:rgba(255,255,255,.16);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer}
+  #sync-status{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 8px;border-radius:20px;background:rgba(255,255,255,.15);color:#fff;font-size:11px}
+  #sync-status::before{content:'';width:6px;height:6px;border-radius:50%;background:#bdf4dd}
+  #sync-status.syncing::before{background:#ffe08a}
+  #sync-status.error::before{background:#ffb3b3}
+
+  #summary-bar{margin:14px 14px 28px;padding:16px 18px;border-radius:18px;background:#fff;box-shadow:var(--shadow);border:1px solid rgba(0,0,0,.03)}
+  .balance-card{text-align:center;padding-bottom:14px;margin-bottom:13px;border-bottom:1px solid var(--border)}
+  .balance-card .sum-label{font-size:12px;color:var(--muted);margin-bottom:5px}
+  .balance-card .sum-val{font-size:30px;font-weight:800;letter-spacing:-1px}
+  .summary-secondary{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .sum-card{text-align:center}
+  .sum-label{font-size:11px;color:var(--muted);margin-bottom:4px}
+  .sum-val{font-size:17px;font-weight:700}
   .sum-val.inc{color:var(--green)}
   .sum-val.exp{color:var(--red)}
-  #tabs{display:grid;grid-template-columns:1fr 1fr;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:56px;z-index:9}
-  .tab{padding:12px;text-align:center;font-size:14px;cursor:pointer;color:var(--muted);border-bottom:2.5px solid transparent;font-weight:500}
-  .tab.active{color:var(--green);border-bottom-color:var(--green)}
-  #page-form{padding:16px;flex:1}
-  #page-history{padding:0 16px;flex:1}
-  .type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-  .type-btn{padding:11px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;cursor:pointer;text-align:center;background:#fff;color:var(--muted);font-weight:500}
-  .type-btn.income.active{background:var(--green-light);border-color:var(--green);color:#085041}
-  .type-btn.expense.active{background:var(--red-light);border-color:var(--red);color:#791F1F}
-  .field{margin-bottom:16px}
-  .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:7px;font-weight:500}
-  .field input{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:10px;font-size:16px;background:#fff;color:var(--text);font-family:inherit;-webkit-appearance:none;appearance:none}
-  .field input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,0.1)}
+
+  #tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:12px 14px 0;padding:4px;background:#e8e7e1;border-radius:13px;position:sticky;top:82px;z-index:15}
+  .tab{min-height:42px;padding:10px;text-align:center;font-size:14px;cursor:pointer;color:var(--muted);border-radius:10px;font-weight:650;display:flex;align-items:center;justify-content:center}
+  .tab.active{color:var(--green-dark);background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  #page-form{padding:14px 14px 24px;flex:1}
+  #page-history{padding:10px 16px 32px;flex:1}
+  .entry-card{background:#fff;border-radius:18px;padding:16px;box-shadow:var(--shadow)}
+  .type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+  .type-btn{min-height:48px;padding:11px;border:1.5px solid var(--border);border-radius:12px;font-size:15px;cursor:pointer;text-align:center;background:#fff;color:var(--muted);font-weight:700}
+  .type-btn.income.active{background:var(--green-light);border-color:var(--green);color:#075a43}
+  .type-btn.expense.active{background:var(--red-light);border-color:var(--red);color:#8a2929}
+  .field{margin-bottom:17px}
+  .field:last-child{margin-bottom:0}
+  .field label,.field-label{display:block;font-size:13px;color:#4f5753;margin-bottom:8px;font-weight:650}
+  .field input{width:100%;min-height:48px;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:16px;background:#fff;color:var(--text);-webkit-appearance:none;appearance:none}
+  .field input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 4px rgba(22,132,100,.11)}
+  .amount-wrap{position:relative}
+  .amount-prefix{position:absolute;left:16px;top:50%;transform:translateY(-50%);z-index:2;font-size:25px;font-weight:700;color:var(--muted);pointer-events:none}
+  #amount{height:70px;padding:10px 18px 10px 48px;font-size:34px;font-weight:800;letter-spacing:-1px;border-color:#cfddd7}
+  #amount::-webkit-inner-spin-button,#amount::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+  #amount{-moz-appearance:textfield}
+  #amount::placeholder{color:#b8bcb9}
+  .quick-amounts{display:flex;gap:7px;margin-top:8px;overflow-x:auto}
+  .quick-amounts button{min-width:68px;min-height:38px;padding:8px 12px;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:#59615d;font-size:13px;font-weight:600;cursor:pointer}
+  .next-btn{width:100%;min-height:46px;margin-top:10px;padding:11px 14px;border:1.5px solid var(--green);border-radius:12px;background:var(--green-light);color:var(--green-dark);font-size:14px;font-weight:750;cursor:pointer}
+  .cat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .cat-chip{min-height:46px;padding:8px 5px;border:1.5px solid var(--border);border-radius:12px;font-size:12px;text-align:center;cursor:pointer;color:#5f6662;background:#fff;line-height:1.25;user-select:none}
+  .cat-chip.sel-income{border-color:var(--green);background:var(--green-light);color:#075a43;font-weight:700}
+  .cat-chip.sel-expense{border-color:var(--red);background:var(--red-light);color:#8a2929;font-weight:700}
+  .autocomplete-wrap{position:relative}
+  .item-helper{margin-top:7px;color:var(--muted);font-size:11px}
+  #item-suggestions{display:none;position:static;margin-top:6px;max-height:248px;overflow-y:auto;padding:6px;background:#fff;border:1px solid var(--border);border-radius:13px;box-shadow:0 10px 28px rgba(31,49,42,.12)}
+  #item-suggestions.show{display:block}
+  .suggestion-item{display:flex;width:100%;min-height:44px;padding:10px 12px;align-items:center;border:0;border-radius:9px;background:#fff;color:var(--text);text-align:left;font-size:14px;cursor:pointer}
+  .suggestion-item:hover,.suggestion-item.active{background:var(--green-light);color:var(--green-dark)}
+  .suggestion-empty{padding:12px;color:var(--muted);font-size:13px;text-align:center}
+  .detail-panel{margin-top:2px;border-top:1px solid var(--border)}
+  .detail-panel summary{list-style:none;padding:15px 2px 2px;color:var(--green-dark);font-size:13px;font-weight:700;cursor:pointer}
+  .detail-panel summary::-webkit-details-marker{display:none}
+  .detail-panel summary::before{content:'+ ';font-size:17px}
+  .detail-panel[open] summary{margin-bottom:14px}
+  .detail-panel[open] summary::before{content:'− '}
   .date-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
-  .today-btn{padding:11px 14px;background:var(--green-light);color:#085041;border:1px solid var(--green);border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
-  .today-btn:active{background:var(--green);color:#fff}
-  .date-badge{display:inline-block;margin-top:7px;padding:5px 11px;border-radius:20px;font-size:12px;font-weight:500}
-  .date-badge.today{background:var(--green-light);color:#085041}
+  .today-btn{min-height:48px;padding:11px 15px;background:var(--green-light);color:#075a43;border:1px solid var(--green);border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .date-badge{display:inline-block;margin-top:7px;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:600}
+  .date-badge.today{background:var(--green-light);color:#075a43}
   .date-badge.past{background:#fff8e6;color:#633806;border:1px solid #fac775}
-  .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-  .cat-chip{padding:9px 4px;border:1px solid var(--border);border-radius:10px;font-size:12px;text-align:center;cursor:pointer;color:var(--muted);background:#fff;line-height:1.3;user-select:none}
-  .cat-chip.sel-income{border-color:var(--green);background:var(--green-light);color:#085041;font-weight:600}
-  .cat-chip.sel-expense{border-color:var(--red);background:var(--red-light);color:#791F1F;font-weight:600}
-  #submit-btn{width:100%;padding:14px;background:var(--green);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:6px}
-  #submit-btn:active{background:var(--green-dark)}
-  #submit-btn:disabled{opacity:0.55;cursor:not-allowed}
-  #toast{display:none;padding:11px 14px;border-radius:10px;font-size:14px;margin-top:12px;text-align:center;font-weight:500}
-  #toast.ok{background:var(--green-light);color:#085041}
-  #toast.err{background:var(--red-light);color:#791F1F}
-  .hist-item{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--border)}
+  .save-dock{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
+  #submit-btn{width:100%;min-height:56px;padding:14px;background:var(--green);color:#fff;border:none;border-radius:15px;font-size:17px;font-weight:750;cursor:pointer;box-shadow:0 8px 20px rgba(22,132,100,.25)}
+  #submit-btn:active{background:var(--green-dark);transform:translateY(1px)}
+  #submit-btn:disabled{opacity:.6;cursor:not-allowed}
+  #toast{display:none;position:fixed;left:50%;bottom:92px;transform:translateX(-50%);width:min(430px,calc(100% - 32px));padding:12px 14px;border-radius:12px;font-size:14px;text-align:center;font-weight:650;z-index:40;box-shadow:var(--shadow)}
+  #toast.ok{background:#123e32;color:#fff}
+  #toast.err{background:#8a2929;color:#fff}
+
+  .hist-item{display:flex;align-items:center;gap:11px;padding:13px 0;border-bottom:1px solid var(--border)}
   .hist-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
   .hist-dot.income{background:var(--green)}
   .hist-dot.expense{background:var(--red)}
   .hist-info{flex:1;min-width:0}
   .hist-cat{font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .hist-sub{font-size:11px;color:var(--muted);margin-top:2px}
-  .hist-amount{font-size:15px;font-weight:600;flex-shrink:0}
+  .hist-sub{font-size:11px;color:var(--muted);margin-top:3px}
+  .hist-amount{font-size:15px;font-weight:700;flex-shrink:0}
   .hist-amount.income{color:var(--green)}
   .hist-amount.expense{color:var(--red)}
-  .empty{text-align:center;padding:48px 16px;color:var(--muted);font-size:14px}
-  .hist-header{font-size:12px;color:var(--muted);font-weight:600;padding:12px 0 4px;display:flex;justify-content:space-between;align-items:center}
-  .hist-tip{background:#fff8e6;border:1px solid #fac775;border-radius:10px;padding:10px 13px;font-size:12px;color:#633806;margin-bottom:16px;line-height:1.6}
-  .del-btn{width:30px;height:30px;border-radius:50%;border:none;background:var(--red-light);color:var(--red);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
-  .del-btn:active{background:var(--red);color:#fff}
-  #confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center}
+  .empty{text-align:center;padding:56px 16px;color:var(--muted);font-size:14px}
+  .hist-header{font-size:12px;color:var(--muted);font-weight:700;padding:16px 0 4px;display:flex;justify-content:space-between;align-items:center}
+  .del-btn{width:38px;height:38px;border-radius:12px;border:none;background:var(--red-light);color:var(--red);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+  #confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:20px}
   #confirm-overlay.show{display:flex}
-  #confirm-box{background:#fff;border-radius:16px;padding:24px 20px;width:300px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.18)}
-  #confirm-box h3{font-size:16px;margin-bottom:8px}
+  #confirm-box{background:#fff;border-radius:18px;padding:24px 20px;width:320px;max-width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+  #confirm-box h3{font-size:17px;margin-bottom:8px}
   #confirm-box p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6}
   .confirm-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .confirm-btns button{padding:12px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer}
+  .confirm-btns button{min-height:48px;padding:12px;border-radius:12px;border:none;font-size:14px;font-weight:700;cursor:pointer}
   .btn-cancel{background:var(--surface);color:var(--text)}
   .btn-delete{background:var(--red);color:#fff}
-  .btn-delete:disabled{opacity:0.55}
- /* ---- Login Screen ---- */
-  #login-screen {
-    position: fixed; inset: 0; background: var(--green);
-    display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000;
-  }
-  .login-box {
-    background: #fff; padding: 24px; border-radius: 16px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  }
-  .login-box h2 { color: var(--text); margin-bottom: 5px; font-size: 20px; }
-  .login-box p { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
-  .login-box input {
-    width: 100%; padding: 12px; margin-bottom: 15px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 20px; text-align: center; letter-spacing: 3px; font-weight: 600;
-  }
-  .login-box input:focus { outline: none; border-color: var(--green); }
-  .login-box button {
-    width: 100%; padding: 12px; background: var(--green); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer;
-  }
-  .login-box button:active { background: var(--green-dark); }
-  #login-error { color: var(--red); font-size: 13px; margin-top: 10px; display: none; font-weight: 500; }
+  .btn-delete:disabled{opacity:.55}
+
+  #login-screen{position:fixed;inset:0;background:linear-gradient(145deg,var(--green-dark),var(--green));display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+  .login-box{background:#fff;padding:28px 24px;border-radius:22px;width:100%;max-width:340px;text-align:center;box-shadow:0 18px 48px rgba(0,0,0,.2)}
+  .login-mark{width:58px;height:58px;margin:0 auto 14px;border-radius:18px;background:var(--green-light);display:grid;place-items:center;font-size:28px}
+  .login-box h2{color:var(--text);margin-bottom:5px;font-size:22px}
+  .login-box p{color:var(--muted);font-size:13px;margin-bottom:20px}
+  .login-box input{width:100%;min-height:58px;padding:12px;margin-bottom:12px;border:1.5px solid var(--border);border-radius:14px;font-size:24px;text-align:center;letter-spacing:8px;font-weight:700}
+  .login-box input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 4px rgba(22,132,100,.11)}
+  .login-box button{width:100%;min-height:50px;padding:12px;background:var(--green);color:#fff;border:none;border-radius:13px;font-size:16px;font-weight:700;cursor:pointer}
+  #login-error{color:var(--red);font-size:13px;margin-top:10px;display:none;font-weight:600}
+  @media (max-width:360px){.cat-grid{grid-template-columns:repeat(2,1fr)}#amount{font-size:30px}}
 </style>
 </head>
 <body>
  <div id="login-screen">
   <div class="login-box">
-    <h2>RABBIT</h2>
-    <p>กรุณาใส่รหัส PIN เพื่อเข้าใช้งาน</p>
-    <input type="password" id="pin-input" placeholder="******" inputmode="numeric" maxlength="6">
+    <div class="login-mark">🐰</div>
+    <h2>Rabbit</h2>
+    <p>ใส่รหัส PIN 6 หลักเพื่อเข้าใช้งาน</p>
+    <input type="password" id="pin-input" aria-label="รหัส PIN 6 หลัก" placeholder="••••••" inputmode="numeric" maxlength="6" autocomplete="current-password">
     <button onclick="login()">เข้าสู่ระบบ</button>
     <div id="login-error">รหัสผ่านไม่ถูกต้อง!</div>
   </div>
@@ -112,14 +142,9 @@
     <div>
       <div class="top-title">🐰 Rabbit</div>
       <div class="top-sub" id="today-label"></div>
+      <div id="sync-status">พร้อมใช้งาน</div>
     </div>
-    <div class="top-icon" onclick="logout()" style="cursor:pointer;" title="ออกจากระบบ">🔒</div>
-  </div>
-
-  <div id="summary-bar">
-    <div class="sum-card"><div class="sum-label">รายรับวันนี้</div><div class="sum-val inc" id="s-income">฿0</div></div>
-    <div class="sum-card"><div class="sum-label">รายจ่ายวันนี้</div><div class="sum-val exp" id="s-expense">฿0</div></div>
-    <div class="sum-card"><div class="sum-label">คงเหลือ</div><div class="sum-val" id="s-balance">฿0</div></div>
+    <button class="top-icon" onclick="logout()" title="ออกจากระบบ" aria-label="ออกจากระบบ">ออก</button>
   </div>
 
   <div id="tabs">
@@ -128,49 +153,75 @@
   </div>
 
   <div id="page-form">
-    <div class="hist-tip">💡 กด Share (iOS) หรือ ⋮ (Android) → "Add to Home Screen" เพื่อใช้แบบแอป</div>
-
-    <div class="type-toggle">
-      <button class="type-btn income active" id="btn-income" onclick="setType('income')">+ รายรับ</button>
-      <button class="type-btn expense" id="btn-expense" onclick="setType('expense')">− รายจ่าย</button>
-    </div>
-
-    <div class="field">
-      <label>วันที่บันทึก</label>
-      <div class="date-row">
-        <input type="date" id="entry-date" onchange="updateDateBadge()" />
-        <button class="today-btn" onclick="setToday()">วันนี้</button>
+    <div class="entry-card">
+      <div class="type-toggle">
+        <button class="type-btn income active" id="btn-income" onclick="setType('income')">+ รายรับ</button>
+        <button class="type-btn expense" id="btn-expense" onclick="setType('expense')">− รายจ่าย</button>
       </div>
-      <div id="date-badge"></div>
-    </div>
 
-    <div class="field">
-      <label>หมวดหมู่</label>
-      <div class="cat-grid" id="cat-grid"></div>
-    </div>
+      <div class="field">
+        <label for="entry-date">วันที่บันทึก</label>
+        <div class="date-row">
+          <input type="date" id="entry-date" onchange="updateDateBadge()" />
+          <button class="today-btn" type="button" onclick="setToday()">วันนี้</button>
+        </div>
+        <div id="date-badge"></div>
+      </div>
 
-    <div class="field">
-      <label>ยอดเงิน (บาท)</label>
-      <input type="number" id="amount" placeholder="0" inputmode="numeric" />
-    </div>
+      <div class="field">
+        <span class="field-label">หมวดหมู่</span>
+        <div class="cat-grid" id="cat-grid"></div>
+      </div>
 
-    <div class="field">
-      <label>ชื่อรายการ (ถ้ามี)</label>
-      <input type="text" id="name" list="item-list" placeholder="เช่น หมู, ผักกาด..." autocomplete="off" />
-      <datalist id="item-list"></datalist>
-    </div>
+      <div class="field">
+        <label for="name">ชื่อรายการ <span style="color:var(--red)">*</span></label>
+        <div class="autocomplete-wrap">
+          <input type="text" id="name" required enterkeyhint="next" placeholder="พิมพ์เพื่อค้นหา เช่น หมู, ผักกาด..." autocomplete="off" aria-autocomplete="list" aria-controls="item-suggestions" aria-expanded="false" />
+          <div id="item-suggestions" role="listbox"></div>
+        </div>
+        <div class="item-helper">รายการใหม่จะถูกเพิ่มลง MasterData ใน Google Sheets อัตโนมัติ</div>
+        <button type="button" class="next-btn" onclick="goToAmount()">ถัดไป: จำนวนเงิน →</button>
+      </div>
 
-    <div class="field">
-      <label>หมายเหตุ (ถ้ามี)</label>
-      <input type="text" id="note" placeholder="..." />
-    </div>
+      <div class="field">
+        <label for="amount">จำนวนเงิน</label>
+        <div class="amount-wrap">
+          <span class="amount-prefix">฿</span>
+          <input type="number" id="amount" placeholder="0" inputmode="decimal" enterkeyhint="done" min="0" step="any" autocomplete="off" />
+        </div>
+        <div class="quick-amounts" aria-label="จำนวนเงินด่วน">
+          <button type="button" onclick="setQuickAmount(100)">฿100</button>
+          <button type="button" onclick="setQuickAmount(500)">฿500</button>
+          <button type="button" onclick="setQuickAmount(1000)">฿1,000</button>
+          <button type="button" onclick="setQuickAmount(5000)">฿5,000</button>
+        </div>
+      </div>
 
-    <button id="submit-btn" onclick="submitEntry()">บันทึก</button>
+      <details class="detail-panel">
+        <summary>เพิ่มหมายเหตุ</summary>
+        <div class="field">
+          <label for="note">หมายเหตุ</label>
+          <input type="text" id="note" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)" />
+        </div>
+      </details>
+
+      <div class="save-dock">
+        <button id="submit-btn" onclick="submitEntry()">บันทึกรายการ</button>
+      </div>
+    </div>
     <div id="toast"></div>
   </div>
 
   <div id="page-history" style="display:none">
     <div id="hist-list"></div>
+  </div>
+
+  <div id="summary-bar">
+    <div class="balance-card"><div class="sum-label" id="lbl-bal">คงเหลือวันนี้</div><div class="sum-val" id="s-balance">฿0</div></div>
+    <div class="summary-secondary">
+      <div class="sum-card"><div class="sum-label" id="lbl-inc">รายรับวันนี้</div><div class="sum-val inc" id="s-income">฿0</div></div>
+      <div class="sum-card"><div class="sum-label" id="lbl-exp">รายจ่ายวันนี้</div><div class="sum-val exp" id="s-expense">฿0</div></div>
+    </div>
   </div>
 </div>
 
@@ -190,21 +241,30 @@
  // --- ระบบ Login ---
 const SECRET_PIN = "171717"; // 🔑 ตั้งรหัสผ่านของคุณตรงนี้ได้เลย (เปลี่ยนเป็นเลขอะไรก็ได้)
 
+function focusEntryStart() {
+  const selectedCategory = document.querySelector('.cat-chip[aria-pressed="true"]');
+  if (selectedCategory) document.getElementById('name').focus();
+  else document.querySelector('.cat-chip')?.focus();
+}
+
 function checkAuth() {
-  const isLogged = localStorage.getItem('sawang_logged_in');
+  const isLogged = localStorage.getItem('rabbit_logged_in');
   if (isLogged === 'true') {
     document.getElementById('login-screen').style.display = 'none'; // ซ่อนหน้า Login
+    setTimeout(focusEntryStart, 150);
   } else {
     document.getElementById('app').style.display = 'none'; // ซ่อนแอปหลัก
+    setTimeout(() => document.getElementById('pin-input').focus(), 150);
   }
 }
 
 function login() {
   const pin = document.getElementById('pin-input').value;
   if (pin === SECRET_PIN) {
-    localStorage.setItem('sawang_logged_in', 'true'); // จำไว้ในเครื่องว่าเข้าระบบแล้ว
+    localStorage.setItem('rabbit_logged_in', 'true'); // จำไว้ในเครื่องว่าเข้าระบบแล้ว
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
+    setTimeout(focusEntryStart, 150);
   } else {
     document.getElementById('login-error').style.display = 'block'; // โชว์ตัวแดง
     document.getElementById('pin-input').value = ''; // เคลียร์ช่องพิมพ์
@@ -213,24 +273,35 @@ function login() {
 
 function logout() {
   if(confirm('ต้องการออกจากระบบใช่หรือไม่?')) {
-    localStorage.removeItem('sawang_logged_in'); // ล้างความจำ
+    localStorage.removeItem('rabbit_logged_in'); // ล้างความจำ
     location.reload(); // รีเฟรชหน้าเว็บ
   }
 }
 
 // สั่งให้เช็กสถานะทันทีที่โหลดเว็บเสร็จ
-checkAuth(); 
+checkAuth();
 // -----------------
 const API = 'https://script.google.com/macros/s/AKfycbzMeca29gZnY5VqFQI4W_J9bv6pHxY9Y7fLVYC7R_9oPcJnEKufstmOR_UNdfZ86ivzEA/exec';
 const CATS = {
   income: ['ยอดขายสด','ยอดโอน','ยอดขายอาหาร','ยอดขายเครื่องดื่ม','ยอดขายของเก่า','LINE MAN','ยอดรับ'],
   expense: ['ของสด','ผัก/ผลไม้','ของแห้ง','เครื่องปรุง','ของแช่แข็ง','เครื่องดื่ม','เหล้า/เบียร์','ของใช้','เบ็ดเตล็ด','ค่าใช้จ่าย','เชื้อเพลิง','ค่าแรง','OC']
 };
-let currentType = 'income', selectedCat = '';
-let history = JSON.parse(localStorage.getItem('rabbit_v1') || '[]');
+let currentType = localStorage.getItem('rabbit_last_type') || 'income';
+if (!CATS[currentType]) currentType = 'income';
+let selectedCat = localStorage.getItem(`rabbit_last_cat_${currentType}`) || '';
+let history = [];
+localStorage.removeItem('rabbit_v1');
+localStorage.removeItem('sawang_v2');
 let pendingDeleteId = null;
+let masterItems = [];
+let masterLoading = false;
+let activeSuggestionIndex = -1;
 
-function todayStr() { return new Date().toISOString().split('T')[0]; }
+function todayStr() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
 function fmtDate(s) { return new Date(s+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}); }
 function fmtDateLong(s) { return new Date(s ? s+'T00:00:00' : new Date()).toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); }
 
@@ -254,10 +325,35 @@ function updateDateBadge() {
   if (!val) { el.innerHTML = ''; return; }
   const isToday = val === todayStr();
   el.innerHTML = `<span class="date-badge ${isToday?'today':'past'}">${isToday ? 'วันนี้ — ' : 'ย้อนหลัง — '}${fmtDateLong(val)}</span>`;
+
+  updateSummary(); // <--- สั่งอัปเดตยอดเมื่อเปลี่ยนวัน
+}
+
+function updateSummary() {
+  const targetDate = document.getElementById('entry-date').value || todayStr();
+  const isToday = targetDate === todayStr();
+
+  document.getElementById('lbl-inc').textContent = isToday ? 'รายรับวันนี้' : 'รายรับตามวันที่';
+  document.getElementById('lbl-exp').textContent = isToday ? 'รายจ่ายวันนี้' : 'รายจ่ายตามวันที่';
+  document.getElementById('lbl-bal').textContent = isToday ? 'คงเหลือวันนี้' : 'คงเหลือตามวันที่';
+
+  const items = history.filter(r => r.date === targetDate);
+  const inc = items.filter(r => r.type === 'income').reduce((s,r) => s + Number(r.amount), 0);
+  const exp = items.filter(r => r.type === 'expense').reduce((s,r) => s + Number(r.amount), 0);
+
+  document.getElementById('s-income').textContent = '฿' + inc.toLocaleString();
+  document.getElementById('s-expense').textContent = '฿' + exp.toLocaleString();
+
+  const bal = inc - exp;
+  const el = document.getElementById('s-balance');
+  el.textContent = (bal < 0 ? '−' : '') + '฿' + Math.abs(bal).toLocaleString();
+  el.style.color = bal < 0 ? 'var(--red)' : bal > 0 ? 'var(--green)' : '#1a1a1a';
 }
 
 function setType(t) {
-  currentType = t; selectedCat = '';
+  currentType = t;
+  selectedCat = localStorage.getItem(`rabbit_last_cat_${t}`) || '';
+  localStorage.setItem('rabbit_last_type', t);
   document.getElementById('btn-income').classList.toggle('active', t==='income');
   document.getElementById('btn-expense').classList.toggle('active', t==='expense');
   renderCats();
@@ -266,13 +362,123 @@ function setType(t) {
 function renderCats() {
   const g = document.getElementById('cat-grid');
   g.innerHTML = '';
-  CATS[currentType].forEach(c => {
-    const d = document.createElement('div');
+  const recent = localStorage.getItem(`rabbit_last_cat_${currentType}`);
+  const categories = [...CATS[currentType]].sort((a,b) => a===recent ? -1 : b===recent ? 1 : 0);
+  categories.forEach(c => {
+    const d = document.createElement('button');
+    d.type = 'button';
     d.className = 'cat-chip' + (c===selectedCat ? (currentType==='income'?' sel-income':' sel-expense') : '');
     d.textContent = c;
-    d.onclick = () => { selectedCat = c; renderCats(); };
+    d.setAttribute('aria-pressed', c===selectedCat ? 'true' : 'false');
+    d.onclick = () => { selectedCat = c; renderCats(); document.getElementById('name').focus(); };
     g.appendChild(d);
   });
+}
+
+function setQuickAmount(value) {
+  const input = document.getElementById('amount');
+  input.value = value;
+  document.getElementById('submit-btn').focus();
+}
+
+function goToAmount() {
+  if (!selectedCat) {
+    showToast('เลือกหมวดหมู่ก่อน','err');
+    document.querySelector('.cat-chip')?.focus();
+    return;
+  }
+  const nameInput = document.getElementById('name');
+  if (!nameInput.value.trim()) {
+    showToast('กรุณาใส่ชื่อรายการ','err');
+    nameInput.focus();
+    return;
+  }
+  hideItemSuggestions();
+  document.getElementById('amount').focus();
+}
+
+function setSyncStatus(text, state = '') {
+  const el = document.getElementById('sync-status');
+  el.textContent = text;
+  el.className = state;
+}
+
+function mergeMasterItems(items) {
+  const known = new Map(masterItems.map(item => [item.toLocaleLowerCase('th-TH'), item]));
+  items.forEach(rawItem => {
+    const item = String(rawItem || '').trim();
+    if (!item) return;
+    const key = item.toLocaleLowerCase('th-TH');
+    if (!known.has(key)) known.set(key, item);
+  });
+  masterItems = [...known.values()].sort((a,b) => a.localeCompare(b, 'th'));
+}
+
+function hideItemSuggestions() {
+  const list = document.getElementById('item-suggestions');
+  list.classList.remove('show');
+  list.innerHTML = '';
+  activeSuggestionIndex = -1;
+  document.getElementById('name').setAttribute('aria-expanded', 'false');
+}
+
+function selectItemSuggestion(item) {
+  const input = document.getElementById('name');
+  input.value = item;
+  hideItemSuggestions();
+  document.getElementById('amount').focus();
+}
+
+function renderItemSuggestions() {
+  const input = document.getElementById('name');
+  const list = document.getElementById('item-suggestions');
+  const query = input.value.trim().toLocaleLowerCase('th-TH');
+
+  if (!query) { hideItemSuggestions(); return; }
+
+  if (masterLoading && !masterItems.length) {
+    list.innerHTML = '<div class="suggestion-empty">กำลังดึงรายการจากฐานข้อมูล...</div>';
+    list.classList.add('show');
+    input.setAttribute('aria-expanded', 'true');
+    return;
+  }
+
+  const matches = masterItems
+    .filter(item => item.toLocaleLowerCase('th-TH').includes(query))
+    .sort((a,b) => {
+      const aStarts = a.toLocaleLowerCase('th-TH').startsWith(query);
+      const bStarts = b.toLocaleLowerCase('th-TH').startsWith(query);
+      return aStarts === bStarts ? a.localeCompare(b, 'th') : aStarts ? -1 : 1;
+    })
+    .slice(0, 8);
+
+  list.innerHTML = '';
+  activeSuggestionIndex = -1;
+  if (!matches.length) {
+    list.innerHTML = '<div class="suggestion-empty">ไม่พบรายการเดิม — ใช้ชื่อที่พิมพ์ใหม่ได้</div>';
+  } else {
+    matches.forEach((item, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'suggestion-item';
+      button.setAttribute('role', 'option');
+      button.dataset.index = index;
+      button.textContent = item;
+      button.addEventListener('mousedown', e => e.preventDefault());
+      button.addEventListener('click', () => selectItemSuggestion(item));
+      list.appendChild(button);
+    });
+  }
+  list.classList.add('show');
+  input.setAttribute('aria-expanded', 'true');
+}
+
+function moveItemSuggestion(direction) {
+  const options = [...document.querySelectorAll('.suggestion-item')];
+  if (!options.length) return;
+  activeSuggestionIndex = (activeSuggestionIndex + direction + options.length) % options.length;
+  options.forEach((option, index) => option.classList.toggle('active', index === activeSuggestionIndex));
+  options[activeSuggestionIndex].scrollIntoView({block:'nearest'});
 }
 
 function switchTab(t) {
@@ -317,71 +523,68 @@ function renderHistory() {
   el.innerHTML = html;
 }
 
-function updateSummary() {
-  const today = todayStr();
-  const items = history.filter(r=>r.date===today);
-  const inc = items.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount),0);
-  const exp = items.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount),0);
-  document.getElementById('s-income').textContent = '฿'+inc.toLocaleString();
-  document.getElementById('s-expense').textContent = '฿'+exp.toLocaleString();
-  const bal = inc - exp;
-  const el = document.getElementById('s-balance');
-  el.textContent = (bal<0?'−':'')+'฿'+Math.abs(bal).toLocaleString();
-  el.style.color = bal<0?'var(--red)':bal>0?'var(--green)':'#1a1a1a';
-}
-
 async function submitEntry() {
   const dateVal = document.getElementById('entry-date').value;
   const amount = document.getElementById('amount').value.trim();
-  
+  const name = document.getElementById('name').value.trim();
+
   if (!dateVal) { showToast('กรุณาเลือกวันที่','err'); return; }
-  if (!selectedCat) { showToast('กรุณาเลือกหมวดหมู่ก่อน','err'); return; }
-  if (!amount || isNaN(amount) || Number(amount)<=0) { showToast('กรุณากรอกยอดเงิน','err'); return; }
-  
+  if (!amount || isNaN(amount) || Number(amount)<=0) { showToast('กรุณากรอกจำนวนเงิน','err'); document.getElementById('amount').focus(); return; }
+  if (!selectedCat) { showToast('เลือกหมวดหมู่ก่อนบันทึก','err'); document.getElementById('cat-grid').scrollIntoView({behavior:'smooth',block:'center'}); return; }
+  if (!name) { showToast('กรุณาใส่ชื่อรายการ','err'); document.getElementById('name').focus(); return; }
+
   const btn = document.getElementById('submit-btn');
-  btn.disabled = true; 
-  btn.textContent = 'กำลังส่งข้อมูล...';
+  btn.disabled = true;
+  btn.textContent = 'กำลังบันทึก...';
 
   // 1. สร้างก้อนข้อมูล
   const entry = {
     id: Date.now().toString(),
     date: dateVal,
     category: selectedCat,
-    name: document.getElementById('name').value.trim(),
+    name,
     amount: Number(amount),
     note: document.getElementById('note').value.trim(),
     type: currentType
   };
 
-  // 2. เซฟลงเครื่องและเคลียร์หน้าจอ "ทันที" (ผู้ใช้จะได้ไม่ต้องรอ)
-  saveLocal(entry);
-  showToast('✓ บันทึกลงแอปแล้ว', 'ok');
-  
+  // 2. เก็บไว้ในหน่วยความจำชั่วคราวและเคลียร์หน้าจอทันที
+  addToCurrentSession(entry);
+  showToast('✓ บันทึกแล้ว พร้อมกรอกรายการถัดไป', 'ok');
+  setSyncStatus('กำลังซิงก์ Google Sheets', 'syncing');
+
   // 3. ปล่อยปุ่มให้กดรายการต่อไปได้เลย
-  btn.disabled = false; 
-  btn.textContent = 'บันทึก';
+  btn.disabled = false;
+  btn.textContent = 'บันทึกรายการ';
 
   // 4. ส่งข้อมูลไป Google Sheets แบบ Background
   fetch(API, {method:'POST', body: JSON.stringify({action:'add', ...entry})})
     .then(r => r.json())
     .then(d => {
-      if (d.status !== 'ok') {
-        console.error('Google Sheet Error');
+      if (d.status === 'ok') {
+        mergeMasterItems([entry.name]);
+        setSyncStatus('ซิงก์ล่าสุดสำเร็จ');
+      } else {
+        setSyncStatus('บันทึกลง Google Sheets ไม่สำเร็จ', 'error');
       }
     })
     .catch(e => {
-      console.error('Offline / ส่งไม่สำเร็จ จะเซฟแค่ในเครื่อง', e);
+      setSyncStatus('บันทึกลง Google Sheets ไม่สำเร็จ', 'error');
+      console.error('Offline / ส่งข้อมูลไม่สำเร็จ', e);
     });
 }
 
-function saveLocal(entry) {
+function addToCurrentSession(entry) {
   history.push(entry);
-  localStorage.setItem('sawang_v2', JSON.stringify(history));
+  localStorage.setItem('rabbit_last_type', entry.type);
+  localStorage.setItem(`rabbit_last_cat_${entry.type}`, entry.category);
   updateSummary();
   document.getElementById('amount').value = '';
   document.getElementById('name').value = '';
   document.getElementById('note').value = '';
-  selectedCat = ''; renderCats();
+  hideItemSuggestions();
+  renderCats();
+  setTimeout(() => document.getElementById('name').focus(), 80);
 }
 
 // ---- DELETE ----
@@ -409,54 +612,108 @@ async function confirmDelete() {
     const r = await fetch(API, {method:'POST', body: JSON.stringify({action:'delete', id})});
     const d = await r.json();
     if (d.status === 'ok') {
-      deleteLocal(id);
+      removeFromCurrentSession(id);
       closeConfirm();
       showToast('✓ ลบออกจาก Google Sheet แล้ว', 'ok');
     } else {
       showToast('ลบไม่สำเร็จ ลองใหม่', 'err');
     }
   } catch(e) {
-    deleteLocal(id);
+    removeFromCurrentSession(id);
     closeConfirm();
-    showToast('ลบในเครื่องแล้ว (ไม่มี internet)', 'ok');
+    showToast('ซ่อนจากหน้าจอนี้แล้ว แต่ยังลบใน Google Sheets ไม่สำเร็จ', 'err');
   }
   btn.disabled = false; btn.textContent = 'ลบเลย';
 }
 
-function deleteLocal(id) {
+function removeFromCurrentSession(id) {
   history = history.filter(r => r.id !== id);
-  localStorage.setItem('sawang_v2', JSON.stringify(history));
   updateSummary();
   renderHistory();
 }
 
 // ฟังก์ชันดึง Master Data จาก Google Sheets
 async function loadMasterData() {
+  if (masterLoading) return;
+  masterLoading = true;
   try {
-    const response = await fetch(API + "?action=getItemMaster");
+    const response = await fetch(API + "?action=getItemMaster&t=" + Date.now());
     const data = await response.json();
-    
-    const dataList = document.getElementById('item-list');
-    dataList.innerHTML = ''; // ล้างข้อมูลเก่า
-    
-    data.forEach(item => {
-      let option = document.createElement('option');
-      option.value = item;
-      dataList.appendChild(option);
-    });
+    if (Array.isArray(data)) mergeMasterItems(data);
   } catch (error) {
     console.error('ไม่สามารถดึงข้อมูล Master Data ได้:', error);
+    const helper = document.querySelector('.item-helper');
+    helper.textContent = 'ดึงรายการเดิมไม่สำเร็จ แต่ยังพิมพ์ชื่อรายการใหม่ได้';
+    helper.style.color = 'var(--red)';
+  } finally {
+    masterLoading = false;
+    renderItemSuggestions();
   }
 }
+// ฟังก์ชันดึงประวัติจาก Google Sheets ตอนเปิดแอป
+async function loadHistoryFromSheet() {
+  try {
+    // 📍 จุดที่แก้: เติม &t=... ลงไปด้านหลัง เพื่อหลอกคอมพิวเตอร์ไม่ให้จำข้อมูลเก่า (Bypass Cache)
+    const response = await fetch(API + "?action=getHistory&t=" + new Date().getTime());
+    const data = await response.json();
 
+    if (data && Array.isArray(data)) {
+      history = data;
+      updateSummary();
+
+      if (document.getElementById('page-history').style.display === 'block') {
+        renderHistory();
+      }
+    }
+  } catch (error) {
+    console.error('ไม่สามารถดึงประวัติจาก Sheet ได้:', error);
+  }
+}
 function showToast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.className = type; t.style.display = 'block';
   setTimeout(()=>{ t.style.display='none'; }, 3500);
 }
 
+// กรอก PIN ครบ 6 หลักแล้วเข้าสู่ระบบทันที และกด Enter เพื่อบันทึกได้
+document.getElementById('pin-input').addEventListener('input', e => {
+  document.getElementById('login-error').style.display = 'none';
+  if (e.target.value.length === 6) login();
+});
+document.getElementById('pin-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') login();
+});
+const nameInput = document.getElementById('name');
+nameInput.addEventListener('input', () => {
+  if (!masterItems.length && !masterLoading) loadMasterData();
+  renderItemSuggestions();
+});
+nameInput.addEventListener('focus', () => {
+  if (!masterItems.length && !masterLoading) loadMasterData();
+  renderItemSuggestions();
+});
+nameInput.addEventListener('blur', () => setTimeout(hideItemSuggestions, 120));
+nameInput.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); moveItemSuggestion(1); return; }
+  if (e.key === 'ArrowUp') { e.preventDefault(); moveItemSuggestion(-1); return; }
+  if (e.key === 'Escape') { hideItemSuggestions(); return; }
+  if (e.key === 'Enter') {
+    const active = document.querySelector('.suggestion-item.active');
+    if (active) { e.preventDefault(); selectItemSuggestion(active.textContent); }
+    else { e.preventDefault(); goToAmount(); }
+  }
+});
+document.getElementById('amount').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  submitEntry();
+});
+document.getElementById('note').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitEntry();
+});
+
 // สั่งทำงานตอนเปิดแอป (เรียกแค่รอบเดียวพอ)
-initDate(); renderCats(); updateSummary(); loadMasterData();
+initDate(); setType(currentType); updateSummary(); loadMasterData(); loadHistoryFromSheet();
 
 </script>
 </body>
